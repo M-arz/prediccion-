@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Predicción por Lotes</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body{ background:#f4f6f9; }
+    .navbar-brand{ font-weight:700; }
+    .card{
+      border:0;
+      border-radius:1rem;
+      box-shadow:0 8px 24px rgba(0,0,0,.08);
+    }
+    .card-header{
+      background:linear-gradient(135deg,#0d6efd,#0aa2ff);
+      color:white;font-weight:700;
+      text-align:center;font-size:1.2rem;
+      border-top-left-radius:1rem;border-top-right-radius:1rem;
+    }
+    .table-container{ max-height:420px; overflow:auto; }
+    .metricas li{ margin-bottom:4px; }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="navbar navbar-expand-lg bg-white shadow-sm">
+  <div class="container">
+    <a class="navbar-brand" href="{{ url_for('index') }}"><i class="bi bi-activity"></i> Predicción Médica</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"><span class="navbar-toggler-icon"></span></button>
+    <div id="nav" class="collapse navbar-collapse">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('individual') }}"><i class="bi bi-person"></i> Individual</a></li>
+        <li class="nav-item"><a class="nav-link active fw-bold" href="{{ url_for('lotes') }}"><i class="bi bi-table"></i> Lotes</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- CONTENT -->
+<div class="container my-4">
+  <div class="card p-4">
+    <div class="card-header">📂 Predicción por Lotes</div>
+    <div class="card-body">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, msg in messages %}
+            <div class="alert alert-{{ 'danger' if category=='error' else category }} d-flex align-items-center" role="alert">
+              <i class="bi bi-info-circle me-2"></i> {{ msg }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" enctype="multipart/form-data" id="form-lotes" class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">📁 Subir archivo (.xls, .xlsx o .csv)</label>
+          <input type="file" name="dataset" class="form-control" accept=".xls,.xlsx,.csv" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">⚙️ Modelo</label>
+          <select name="modelo" class="form-select" required>
+            <option value="logistica">Regresión Logística</option>
+            <option value="rna">Red Neuronal</option>
+          </select>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary w-100" id="btn-submit">
+            <span class="spinner-border spinner-border-sm me-2 d-none" id="spin"></span>
+            Predecir
+          </button>
+        </div>
+      </form>
+
+      {% if tabla %}
+        <hr>
+        <h5 class="text-center mt-3">Resultados</h5>
+        <div class="table-container">{{ tabla|safe }}</div>
+        <a href="{{ url_for('descargar_resultados') }}" class="btn btn-success mt-3">
+          <i class="bi bi-download"></i> Descargar resultados
+        </a>
+      {% endif %}
+
+      {% if metricas %}
+        <hr>
+        <div class="metricas">
+          <h5>📊 Métricas de Evaluación</h5>
+          <ul>
+            <li><b>Accuracy:</b> {{ metricas.accuracy }}%</li>
+            <li><b>Precisión:</b> {{ metricas.precision }}%</li>
+            <li><b>Recall:</b> {{ metricas.recall }}%</li>
+            <li><b>F1:</b> {{ metricas.f1 }}%</li>
+          </ul>
+        </div>
+      {% endif %}
+
+      <div class="text-center mt-4">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver al inicio</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Spinner al enviar
+  const form = document.getElementById('form-lotes');
+  const btn = document.getElementById('btn-submit');
+  const spin = document.getElementById('spin');
+  form.addEventListener('submit', () => {
+    spin.classList.remove('d-none');
+    btn.setAttribute('disabled', 'disabled');
+  });
+</script>
+</body>
+</html>
